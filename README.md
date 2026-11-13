@@ -3,19 +3,37 @@
 PlastiTrack is an Environmental Studies (EVS) college project that helps students measure and reduce their **single-use plastic footprint**.
 
 - **Phase 1 (frontend):** a browser-based Single-Use Plastic Footprint Calculator (`index.html`, `style.css`, `script.js`).
-- **Phase 2 (this stage):** a Python/Flask + SQLite **backend** that adds saved history, eco challenges, a personal Plastic Impact Passport and a campus team challenge.
+- **Phase 2:** a Python/Flask + SQLite **backend** that adds saved history, eco challenges, a personal Plastic Impact Passport and a campus team challenge.
+- **Phase 3 (integration):** the website is connected to the backend through four new sections (4–7) at the bottom of the page. The original calculator, layout and design are kept.
 
-The original frontend is unchanged and still works on its own: just open `index.html` in a browser. Connecting the frontend to the backend is planned for a later stage.
+The original calculator still works on its own, even if you open `index.html` directly from disk without the server. The new sections need the server and say so clearly when it is not running.
 
 ---
 
 ## Features
 
-### Original calculator (frontend, unchanged)
+### Original calculator (sections 1–3, preserved)
 - Weekly usage inputs for 7 single-use plastic items.
 - Weekly grams, annual kg, estimated annual CO₂e and an eco score out of 100.
 - Breakdown by item.
 - Rule-based recommendations for sustainable alternatives, with estimated annual savings.
+
+`script.js` and `style.css` are unchanged. In `index.html`, three pieces of text were reworded so the page no longer calls the rule-based engine "AI":
+- "AI impact score" → "Impact score"
+- "3. AI recommendations" → "3. Recommendations"
+- The "Planned: ML/LLM" note now reads "Recommendations come from a rule-based engine over a plastic dataset."
+
+Everything else in `index.html` is an addition.
+
+### Website sections connected to the backend (new)
+| Section | What you can do |
+|---|---|
+| **4. Save & track your progress** | Choose a PlastiTrack ID and save the footprint you just calculated, using the explicit **Save** button (Calculate never saves by itself). See whether your plastic use is going up or down, and list your saved weeks. |
+| **5. Eco challenges** | Join challenges, mark them completed (self-reported) and see your badges, each labelled *Self-reported* or *Measured*. |
+| **6. Plastic Impact Passport** | Your saved records, latest eco score, completed challenges, change since your first save, and the cumulative estimate with its method explained. |
+| **7. Campus sustainability challenge** | Register a team, join it (one team per student), and see campus totals and the leaderboard. Sample data is hidden unless you tick **Show sample data**, and every sample row is tagged "Sample". |
+
+A status line at the top of section 4 shows whether the page is connected to the server.
 
 ### Backend (new)
 | Feature | What it does |
@@ -51,7 +69,8 @@ The recommendations come from a **rule-based** engine over a fixed dataset. No m
 - **Flask 3**: web framework / REST API
 - **SQLite**: built into Python, so there is no database server to install
 - **unittest**: built-in test framework (the tests also run under pytest)
-- **Node.js** (optional): used only by one test that runs the original `script.js` to check that the backend produces identical numbers
+- **Plain HTML, CSS and JavaScript** for the website: no framework and no build step
+- **Node.js** (optional, testing only): runs the original `script.js` and the frontend tests. The website itself does not need Node.
 
 No paid APIs, cloud services or external network calls are used. After the one-time `pip install`, everything runs offline.
 
@@ -61,7 +80,11 @@ No paid APIs, cloud services or external network calls are used. After the one-t
 
 ```
 PlastiTrack/
-├── index.html, style.css, script.js   ← original frontend (unchanged)
+├── index.html                ← original page + new sections 4–7 (additions only, plus the 3 wording fixes)
+├── style.css, script.js      ← original frontend (unchanged)
+├── api.js                    ← API helper: requests, timeouts, error messages, input/ID checks
+├── integration.js            ← logic for sections 4–7 (safe text rendering, no framework)
+├── integration.css           ← styles for sections 4–7 only, using the original colour variables
 ├── README.md
 ├── .gitignore
 ├── database/
@@ -80,8 +103,18 @@ PlastiTrack/
     │   ├── footprint_service.py   challenge_service.py
     │   ├── passport_service.py    campus_service.py
     └── tests/
-        ├── test_calculations.py   test_api.py   js_reference.js
+        ├── test_calculations.py   test_api.py   test_http.py   test_frontend_js.py
+        ├── js_reference.js        runs the original script.js for comparison
+        └── js/                    Node tests for api.js and integration.js
 ```
+
+### How the frontend talks to the backend
+- `script.js` is never modified. `integration.js` adds a second click listener to the existing **Calculate** button. That listener runs after the original one and only takes a snapshot of the inputs for saving.
+- `api.js` sends every request with an 8-second timeout. It turns server errors, network failures and timeouts into readable messages.
+- **User IDs** are trimmed and lowercased before every request. The `sample_` prefix is refused.
+- **Before saving**, values are checked with the backend's rules: numbers from 0 to 10,000, and an empty box counts as 0. Negative or too-large values are named in a message and are not saved. The original calculator display is not affected.
+- **Safe text:** all new content is built with `textContent`, never `innerHTML`, so text that users type (such as team names) can never run as code.
+- The page must be opened at `http://127.0.0.1:5000/` to use sections 4–7. Opened from disk, the calculator works and the status line explains how to start the server.
 
 Differences from the suggested structure, and why:
 - `services/passport_service.py` and `services/campus_service.py` were added so each feature's rules live in one place.
@@ -103,7 +136,7 @@ calculations.py  (pure formulas)      models.py (SQL)
                                    database/plastitrack.db (SQLite)
 ```
 
-The Flask app also serves the original `index.html`, `style.css` and `script.js` from the project root, through an allow-list of exactly those three files. The frontend can therefore later be served from the same local address without being modified. The database and source code are never served.
+The Flask app also serves the website from the project root, through an allow-list of exactly six files: `index.html`, `style.css`, `script.js`, `api.js`, `integration.js` and `integration.css`. The database and source code are never served.
 
 ---
 
@@ -129,8 +162,8 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m backend.app
 ```
 
+- Website: <http://127.0.0.1:5000/>. Open this address, not the file, to use saving, challenges, passport and campus.
 - API health check: <http://127.0.0.1:5000/api/health>
-- Original frontend, served unchanged: <http://127.0.0.1:5000/>
 - Stop the server with **Ctrl + C**.
 
 The database file `database\plastitrack.db` and all its tables are created automatically on first start. To use a different file, set `$env:PLASTITRACK_DB = "C:\path\to\file.db"` before starting.
@@ -294,7 +327,15 @@ Badges are not stored. They are calculated from the tables above every time, so 
 
 (`.\.venv\Scripts\python.exe -m pytest backend/tests` also works if pytest is installed.)
 
-There are 71 tests in three files: `test_calculations.py`, `test_api.py` (Flask test client) and `test_http.py`. `test_http.py` starts a real multi-threaded HTTP server on a free port, so it can test concurrent requests and server restarts.
+There are 75 Python tests in four files:
+- `test_calculations.py` checks the formulas.
+- `test_api.py` uses the Flask test client.
+- `test_http.py` starts a real multi-threaded HTTP server on a free port, so it can test concurrent requests and server restarts.
+- `test_frontend_js.py` runs the Node.js frontend tests:
+  - `js/api_js_test.js` has 14 checks of the API helper.
+  - `js/integration_js_test.js` has 22 end-to-end checks. It loads the real `script.js`, `api.js` and `integration.js` into one page and talks to a real Flask server. It proves the original calculator's output is identical with the integration loaded, that saving is explicit and happens once per calculation, that sample data is hidden by default, and that team names containing HTML are shown as plain text.
+
+If Node.js is not installed, the JavaScript tests are skipped.
 
 The tests use temporary database files and never touch `database\plastitrack.db`. They cover:
 - **Real HTTP:** persistence after a server restart, creation of a missing database folder, concurrent duplicate requests (joins, completions, team creation, team joins, first saves) never causing a 500 or a double completion, the 413 size limit, and static file content types.
@@ -324,10 +365,12 @@ The tests use temporary database files and never touch `database\plastitrack.db`
 - No rate limiting, and no protection against someone creating many fake users or teams.
 - User ids are case-sensitive. The frontend integration should normalise them (for example, lowercase) before sending.
 - The backend rejects quantities above 10 000 per item per week. The original frontend does not limit this, so the integration step should validate the same way or show the backend's error message.
-- The API must be called from the same origin (open the page at `http://127.0.0.1:5000/`, not by double-clicking `index.html`). CORS is not enabled.
+- The API must be called from the same origin: open the page at `http://127.0.0.1:5000/`, not by double-clicking `index.html`. CORS is not enabled. When opened from disk, the calculator still works and sections 4–7 show how to start the server.
+- The browser remembers your PlastiTrack ID in `localStorage` for convenience. On a shared computer, anyone using the same browser will see it.
+- For a brand-new ID, the browser console shows one "404 (NOT FOUND)" line for `/api/passport`. This is the backend's normal "no data yet" answer, and the page shows a friendly message instead.
+- There is no way yet to leave or switch teams, or to delete a saved week.
 - All data is **self-entered**. Weekly quantities are not verified, so even "measured" footprints are estimates from what users report.
 - Item weights and the 3.0 CO₂e factor are approximate project assumptions.
 - One team per user; there is no endpoint yet for leaving or switching teams.
 - Challenge durations (7 days) are informational; the backend does not stop early completion.
 - The Flask development server is meant for local use only.
-- The frontend is not yet connected to the backend. That is the next stage.

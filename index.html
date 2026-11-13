@@ -3,6 +3,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>PlastiTrack - Single-Use Plastic Footprint Calculator</title>
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="integration.css">
+<link rel="icon" href="data:,">
 </head>
 <body>
 <div class="page-shell">
@@ -10,7 +12,7 @@
   <div class="eyebrow">Eco habit tracker</div>
   <div class="brand-wrap">
     <h1>Plasti<span>Track</span></h1>
-    <div class="brand-badge">AI impact score</div>
+    <div class="brand-badge">Impact score</div>
   </div>
   <p>Measure your single-use plastic impact and discover smarter swaps that cut waste faster.</p>
 </header>
@@ -32,13 +34,85 @@
 <div class="stat"><b id="sS">0</b><span>Eco score (0-100)</span></div></div>
 <h2 style="margin-top:18px">Breakdown by item</h2><div id="bars"></div></section>
 
-<section id="rec" class="card hide"><h2>3. AI recommendations</h2>
+<section id="rec" class="card hide"><h2>3. Recommendations</h2>
 <p id="top" class="note"></p><div id="alts"></div>
 <div class="stats" style="margin-top:12px">
 <div class="stat"><b id="rP">0</b><span>kg plastic saved / year</span></div>
 <div class="stat"><b id="rC">0</b><span>kg CO₂e saved / year</span></div></div>
-<p class="note">Prototype: recommendations come from a rule-based engine over a plastic dataset. Planned: ML/LLM-based personalised suggestions.</p></section>
+<p class="note">Recommendations come from a rule-based engine over a plastic dataset.</p></section>
+
+<!-- ===== Added for backend integration (sections 4-7). Content is filled in by integration.js. ===== -->
+<section id="pt-track" class="card panel pt-card">
+  <div class="section-header">
+    <h2>4. Save &amp; track your progress</h2>
+    <span class="mini-pill">History</span>
+  </div>
+  <p id="pt-server" class="pt-status" role="status" aria-live="polite">Checking connection to the PlastiTrack server…</p>
+  <div class="pt-field">
+    <label for="pt-user">Your PlastiTrack ID</label>
+    <div class="pt-inline">
+      <input type="text" id="pt-user" maxlength="40" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="e.g. green_panda_7">
+      <button type="button" id="pt-user-set" class="pt-btn">Use this ID</button>
+    </div>
+    <p id="pt-user-msg" class="pt-msg" role="status" aria-live="polite"></p>
+    <p class="note">Your ID is a nickname, not a login or password. Anyone who knows it can see or add to its records, so don't use your real name or roll number.</p>
+  </div>
+  <button type="button" id="pt-save" disabled>Save this week's footprint</button>
+  <p id="pt-save-msg" class="pt-msg" role="status" aria-live="polite">Calculate your footprint first, then save it here.</p>
+  <div id="pt-trend"></div>
+  <h3 class="pt-sub">Your saved weeks</h3>
+  <div id="pt-history"><p class="note">Choose an ID to see your saved weeks.</p></div>
+</section>
+
+<section id="pt-challenges" class="card panel pt-card">
+  <div class="section-header">
+    <h2>5. Eco challenges</h2>
+    <span class="mini-pill">Self-reported</span>
+  </div>
+  <p class="note">Completing a challenge earns a badge. Challenges are self-reported and are not counted as measured plastic savings.</p>
+  <div id="pt-challenge-list"><p class="note">Loading challenges…</p></div>
+  <h3 class="pt-sub">Your badges</h3>
+  <div id="pt-badges"><p class="note">Choose an ID to see your badges.</p></div>
+</section>
+
+<section id="pt-passport-card" class="card panel pt-card">
+  <div class="section-header">
+    <h2>6. Plastic Impact Passport</h2>
+    <span class="mini-pill">Personal record</span>
+  </div>
+  <div id="pt-passport"><p class="note">Choose an ID to see your passport.</p></div>
+</section>
+
+<section id="pt-campus" class="card panel pt-card">
+  <div class="section-header">
+    <h2>7. Campus sustainability challenge</h2>
+    <span class="mini-pill">Teams</span>
+  </div>
+  <div id="pt-team-status"><p class="note">Choose an ID to join a team.</p></div>
+  <div class="pt-field">
+    <label for="pt-team-select">Join a team</label>
+    <div class="pt-inline">
+      <select id="pt-team-select"><option value="">Loading teams…</option></select>
+      <button type="button" id="pt-team-join" class="pt-btn">Join team</button>
+    </div>
+  </div>
+  <div class="pt-field">
+    <label for="pt-team-name">Or register a new team</label>
+    <div class="pt-inline">
+      <input type="text" id="pt-team-name" maxlength="60" autocomplete="off" placeholder="e.g. Green Warriors">
+      <button type="button" id="pt-team-create" class="pt-btn">Create team</button>
+    </div>
+  </div>
+  <p id="pt-team-msg" class="pt-msg" role="status" aria-live="polite"></p>
+  <label class="pt-check"><input type="checkbox" id="pt-show-sample"> Show sample data (demo only, not real students)</label>
+  <h3 class="pt-sub">Campus summary</h3>
+  <div id="pt-summary"><p class="note">Loading…</p></div>
+  <h3 class="pt-sub">Leaderboard</h3>
+  <div id="pt-leaderboard"><p class="note">Loading…</p></div>
+</section>
 </main>
 </div>
 <script src="script.js"></script>
+<script src="api.js"></script>
+<script src="integration.js"></script>
 </body></html>

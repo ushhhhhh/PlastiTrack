@@ -92,6 +92,30 @@ class HealthAndFrontendTests(ApiTestCase):
                 self.assertEqual(r.data, fh.read())
             r.close()
 
+    def test_frontend_allow_list_is_exact(self):
+        from backend.app import FRONTEND_FILES
+        self.assertEqual(FRONTEND_FILES, {
+            "index.html", "style.css", "script.js",
+            "api.js", "integration.js", "integration.css"})
+
+    def test_integration_files_served_with_correct_types(self):
+        root = os.path.dirname(os.path.dirname(os.path.dirname(
+            os.path.abspath(__file__))))
+        for name, ctype in (("api.js", "javascript"),
+                            ("integration.js", "javascript"),
+                            ("integration.css", "text/css")):
+            path = os.path.join(root, name)
+            r = self.client.get("/" + name)
+            if not os.path.exists(path):
+                # Allowed but not created yet -> clean JSON 404, no crash.
+                self.assertEqual(r.status_code, 404, name)
+                continue
+            self.assertEqual(r.status_code, 200, name)
+            self.assertIn(ctype, r.headers["Content-Type"])
+            with open(path, "rb") as fh:
+                self.assertEqual(r.data, fh.read())
+            r.close()
+
     def test_private_files_not_served(self):
         for url in ("/backend/app.py", "/database/plastitrack.db",
                     "/.git/config", "/README.md"):

@@ -26,7 +26,8 @@ API_VERSION = "1.0"
 # Only these files from the project root are served. This keeps the
 # database, backend code and .git folder private while letting the
 # original frontend run from the same local server without modification.
-FRONTEND_FILES = {"index.html", "style.css", "script.js"}
+FRONTEND_FILES = {"index.html", "style.css", "script.js",
+                  "api.js", "integration.js", "integration.css"}
 
 
 def create_app(config=None):

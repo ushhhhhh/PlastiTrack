@@ -10,6 +10,7 @@ Run from the project root:  python -m unittest discover -s backend/tests -t .
 """
 
 import json
+import logging
 import os
 import shutil
 import tempfile
@@ -30,6 +31,8 @@ DEFAULTS = {"bottle": 7, "bag": 5, "straw": 3, "cutlery": 2, "box": 2,
 
 class LiveServer:
     def __init__(self, db_path):
+        # Keep test output readable: no per-request access log lines.
+        logging.getLogger("werkzeug").setLevel(logging.ERROR)
         self.app = create_app({"DATABASE": db_path})
         self.server = make_server("127.0.0.1", 0, self.app, threaded=True)
         self.base = "http://127.0.0.1:%d" % self.server.server_port
