@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PlastiTrack - Single-Use Plastic Footprint Calculator</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="page-shell">
+<header class="hero">
+  <div class="eyebrow">Eco habit tracker</div>
+  <div class="brand-wrap">
+    <h1>Plasti<span>Track</span></h1>
+    <div class="brand-badge">AI impact score</div>
+  </div>
+  <p>Measure your single-use plastic impact and discover smarter swaps that cut waste faster.</p>
+</header>
+<main>
+<section class="card panel">
+  <div class="section-header">
+    <h2>1. Enter your weekly usage</h2>
+    <span class="mini-pill">Weekly</span>
+  </div>
+  <div id="inputs"></div>
+  <button id="go">Calculate my footprint</button>
+</section>
+
+<section id="out" class="card hide"><h2>2. Your footprint</h2>
+<div class="stats">
+<div class="stat"><b id="sW">0</b><span>g plastic / week</span></div>
+<div class="stat"><b id="sY">0</b><span>kg plastic / year</span></div>
+<div class="stat"><b id="sC">0</b><span>kg CO₂e / year</span></div>
+<div class="stat"><b id="sS">0</b><span>Eco score (0-100)</span></div></div>
+<h2 style="margin-top:18px">Breakdown by item</h2><div id="bars"></div></section>
+
+<section id="rec" class="card hide"><h2>3. AI recommendations</h2>
+<p id="top" class="note"></p><div id="alts"></div>
+<div class="stats" style="margin-top:12px">
+<div class="stat"><b id="rP">0</b><span>kg plastic saved / year</span></div>
+<div class="stat"><b id="rC">0</b><span>kg CO₂e saved / year</span></div></div>
+<p class="note">Prototype: recommendations come from a rule-based engine over a plastic dataset. Planned: ML/LLM-based personalised suggestions.</p></section>
+</main>
+</div>
+<script src="script.js"></script>
+</body></html>
